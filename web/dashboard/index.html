@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Front Desk Dashboard</title>
+  <meta name="description" content="Live dashboard for the AI voice receptionist demo: bookings, call log and callback requests.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230e5c55'/%3E%3Cpath d='M9 22V14M16 22V9M23 22v-5' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .dash-head { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; padding: 32px 0 22px; }
+    .dash-head h1 { font-size: clamp(28px, 4vw, 38px); margin: 0; }
+    .dash-head p { margin: 4px 0 0; color: var(--muted); }
+    .live { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ok); background: var(--ok-soft); padding: 6px 12px; border-radius: 999px; }
+    .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: blink 1.6s infinite; }
+    .live.off { color: var(--muted); background: #f0eee9; }
+    .live.off::before { background: var(--muted); animation: none; }
+    @keyframes blink { 50% { opacity: .3; } }
+    .controls { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+    .seg button { border: 0; background: none; font: 500 13.5px/1 var(--sans); padding: 8px 13px; border-radius: 999px; cursor: pointer; color: var(--muted); }
+    .seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+    .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+    .kpi span { font-size: 13px; color: var(--muted); }
+    .kpi b { display: block; font: 600 34px/1.1 var(--serif); margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 18px; overflow: hidden; }
+    .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 18px 20px 12px; }
+    .panel-head h2 { font-size: 21px; }
+    .panel-head span { font-size: 13px; color: var(--muted); }
+    .scroll { overflow-x: auto; }
+    table.data { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
+    .data th { text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 10px 20px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fbfaf7; }
+    .data td { padding: 12px 20px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .data tr:last-child td { border-bottom: 0; }
+    .data tr.new td { animation: flash 2.4s ease-out; }
+    @keyframes flash { from { background: #fff4d6; } }
+    .mono { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .sub { color: var(--muted); font-size: 12.5px; }
+    .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f0eee9; color: var(--muted); }
+    .tag.booked { background: var(--ok-soft); color: var(--ok); }
+    .tag.transferred, .tag.open { background: var(--warn-soft); color: var(--warn); }
+    .tag.question { background: var(--brand-soft); color: var(--brand); }
+    .tag.elevenlabs { background: #ece9ff; color: #4b3cc4; }
+    .tag.vapi { background: #e6f1ff; color: #1f5fbf; }
+    .summary { max-width: 34em; color: var(--muted); }
+    .empty { padding: 26px 20px; color: var(--muted); font-size: 14px; text-align: center; border-top: 1px solid var(--line); }
+
+    @media (max-width: 760px) {
+      .kpis { grid-template-columns: 1fr 1fr; }
+      .controls { margin-left: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="/">
+      <span class="logo-mark"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M9 22V14M16 22V9M23 22v-5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span>
+      Front Desk
+    </a>
+    <nav class="nav"><a href="/">Clinic site</a><a href="https://github.com/Rossenberg/voice-agent-demo" target="_blank" rel="noopener">GitHub</a></nav>
+    <a class="btn btn-primary btn-sm" href="/#assistant">Talk to Anna</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="dash-head">
+    <div>
+      <h1>Smile Dental · AI receptionist</h1>
+      <p>Everything the voice agent does, as it happens. Phone numbers and surnames are masked.</p>
+    </div>
+    <div class="controls">
+      <span class="live" id="live">Live</span>
+      <div class="seg" id="platform" role="group" aria-label="Platform">
+        <button aria-pressed="true" data-v="">All</button>
+        <button aria-pressed="false" data-v="elevenlabs">ElevenLabs</button>
+        <button aria-pressed="false" data-v="vapi">Vapi</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><span>Conversations</span><b id="kCalls">–</b></div>
+    <div class="kpi"><span>Appointments booked</span><b id="kBookings">–</b></div>
+    <div class="kpi"><span>Handed to a human</span><b id="kCallbacks">–</b></div>
+    <div class="kpi"><span>Avg. call length</span><b id="kAvg">–</b></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Appointments</h2><span>Created by the voice agent</span></div>
+    <div class="scroll"><table class="data"><thead><tr><th>Booking</th><th>When</th><th>Service</th><th>Patient</th><th>Platform</th><th>Created</th></tr></thead><tbody id="bookings"></tbody></table></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Call log</h2><span>Outcome and AI summary of each conversation</span></div>
+    <div class="scroll"><table class="data"><thead><tr><th>Started</th><th>Length</th><th>Outcome</th><th>Summary</th><th>Platform</th></tr></thead><tbody id="calls"></tbody></table></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Callback requests</h2><span>When Anna hands over to a person</span></div>
+    <div class="scroll"><table class="data"><thead><tr><th>Ticket</th><th>Reason</th><th>Details</th><th>Patient</th><th>Created</th></tr></thead><tbody id="callbacks"></tbody></table></div>
+  </div>
+</main>
+
+<footer><div class="wrap"><span>Demo data from a fictional clinic. Updates every 8 seconds while this tab is open.</span></div></footer>
+
+<script>
+  const REFRESH_MS = 8000;
+  const OUTCOME = { booked: "Booked", transferred: "To human", question: "Question", no_interaction: "No speech" };
+  const REASON = { patient_request: "Asked for a person", angry_patient: "Upset patient", complex_question: "Complex question", emergency: "Emergency", reschedule_or_cancel: "Reschedule / cancel", system_error: "System error", other: "Other" };
+
+  let platform = "";
+  const seen = { bookings: new Set(), calls: new Set(), callbacks: new Set() };
+  let firstLoad = true;
+
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const ago = (iso) => {
+    const s = Math.round((Date.now() - Date.parse(iso)) / 1000);
+    if (s < 60) return "just now";
+    if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+    if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+    return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  };
+  const clock = (iso) => new Date(iso).toLocaleString("en-GB", { timeZone: "Asia/Yerevan", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const dur = (s) => (s == null ? "–" : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`);
+  const tag = (cls, text) => `<span class="tag ${esc(cls)}">${esc(text)}</span>`;
+  const platformTag = (p) => tag(p, p === "elevenlabs" ? "ElevenLabs" : p === "vapi" ? "Vapi" : p);
+
+  function render(id, rows, key, cols, emptyText) {
+    const tbody = document.getElementById(id);
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="${cols.length}" class="empty">${emptyText}</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows
+      .map((r) => {
+        const isNew = !firstLoad && !seen[id].has(r[key]);
+        seen[id].add(r[key]);
+        return `<tr class="${isNew ? "new" : ""}">${cols.map((c) => `<td>${c(r)}</td>`).join("")}</tr>`;
+      })
+      .join("");
+  }
+
+  async function load() {
+    const q = platform ? `?platform=${platform}` : "";
+    const get = (p) => fetch(`/api/${p}${q}`).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+    try {
+      const [stats, bookings, calls, callbacks] = await Promise.all([get("stats"), get("bookings"), get("calls"), get("callbacks")]);
+
+      const totalCalls = stats.calls.reduce((n, c) => n + c.n, 0);
+      const timed = stats.calls.filter((c) => c.avg_sec != null);
+      const avg = timed.length ? timed.reduce((n, c) => n + c.avg_sec * c.n, 0) / timed.reduce((n, c) => n + c.n, 0) : null;
+      document.getElementById("kCalls").textContent = totalCalls;
+      document.getElementById("kBookings").textContent = stats.bookings;
+      document.getElementById("kCallbacks").textContent = stats.callbacks;
+      document.getElementById("kAvg").textContent = avg == null ? "–" : dur(Math.round(avg));
+
+      render("bookings", bookings, "booking_id", [
+        (b) => `<b class="mono">${esc(b.booking_id)}</b>`,
+        (b) => `<span class="mono">${esc(b.date_spoken.replace(/ \d{4}$/, ""))}</span><div class="sub mono">${esc(b.time)}</div>`,
+        (b) => esc(b.service) + (b.notes ? `<div class="sub">${esc(b.notes)}</div>` : ""),
+        (b) => `${esc(b.patient_name)}<div class="sub mono">${esc(b.phone)}</div>`,
+        (b) => platformTag(b.platform),
+        (b) => `<span class="sub">${ago(b.created_at)}</span>`,
+      ], "No appointments yet — talk to Anna and book one.");
+
+      render("calls", calls, "id", [
+        (c) => `<span class="mono">${clock(c.started_at)}</span>`,
+        (c) => `<span class="mono">${dur(c.duration_sec)}</span>`,
+        (c) => (c.outcome ? tag(c.outcome, OUTCOME[c.outcome] ?? c.outcome) : tag("", "In progress")),
+        (c) => `<div class="summary">${esc(c.summary ?? (c.duration_sec == null ? "Summary arrives a few seconds after the call ends." : "–"))}</div>`,
+        (c) => platformTag(c.platform),
+      ], "No calls yet.");
+
+      render("callbacks", callbacks, "ticket_id", [
+        (c) => `<b class="mono">${esc(c.ticket_id)}</b>`,
+        (c) => tag(c.reason === "emergency" || c.reason === "angry_patient" ? "open" : "", REASON[c.reason] ?? c.reason),
+        (c) => `<div class="summary">${esc(c.summary)}</div>`,
+        (c) => `${esc(c.patient_name ?? "–")}<div class="sub mono">${esc(c.phone)}</div>`,
+        (c) => `<span class="sub">${ago(c.created_at)}</span>`,
+      ], "No callback requests.");
+
+      firstLoad = false;
+      document.getElementById("live").className = "live";
+    } catch (err) {
+      console.error(err);
+      document.getElementById("live").className = "live off";
+    }
+  }
+
+  document.getElementById("platform").addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    platform = btn.dataset.v;
+    document.querySelectorAll("#platform button").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+    firstLoad = true;
+    Object.values(seen).forEach((s) => s.clear());
+    load();
+  });
+
+  load();
+  setInterval(() => document.visibilityState === "visible" && load(), REFRESH_MS);
+  document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && load());
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smile Dental Yerevan</title>
+  <meta name="description" content="Demo: an AI voice receptionist that answers questions and books dental appointments in real time.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230e5c55'/%3E%3Cpath d='M10 9c-2 0-3.5 1.8-3 4.5.4 2.3 1.4 3.6 2 6 .5 2.2 1 4.5 2.3 4.5 1.5 0 1.5-3.5 2.2-5 .4-.9.9-1.2 1.5-1.2s1.1.3 1.5 1.2c.7 1.5.7 5 2.2 5 1.3 0 1.8-2.3 2.3-4.5.6-2.4 1.6-3.7 2-6 .5-2.7-1-4.5-3-4.5-2.2 0-3 1.3-5 1.3S12.2 9 10 9z' fill='white'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#">
+      <span class="logo-mark"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M10 9c-2 0-3.5 1.8-3 4.5.4 2.3 1.4 3.6 2 6 .5 2.2 1 4.5 2.3 4.5 1.5 0 1.5-3.5 2.2-5 .4-.9.9-1.2 1.5-1.2s1.1.3 1.5 1.2c.7 1.5.7 5 2.2 5 1.3 0 1.8-2.3 2.3-4.5.6-2.4 1.6-3.7 2-6 .5-2.7-1-4.5-3-4.5-2.2 0-3 1.3-5 1.3S12.2 9 10 9z" fill="#fff"/></svg></span>
+      Smile Dental
+    </a>
+    <nav class="nav">
+      <a href="#services">Services &amp; prices</a>
+      <a href="#visit">Visit us</a>
+      <a href="#faq">FAQ</a>
+      <a href="#how">How this demo works</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#assistant" data-start>Book by voice</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow">AI receptionist · available 24/7</span>
+        <h1>Gentle dentistry in the heart of <em>Yerevan</em>.</h1>
+        <p class="lead">Ask Anna, our AI receptionist, about treatments and prices, or book your visit in under two minutes — just by talking.</p>
+        <div class="hero-cta">
+          <button class="btn btn-primary" data-start>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>
+            Talk to our assistant
+          </button>
+          <a class="btn btn-ghost" href="#services">See prices</a>
+        </div>
+        <div class="hero-facts">
+          <div><b>9 – 20</b>Mon – Fri</div>
+          <div><b>10 – 16</b>Saturday</div>
+          <div><b>EN · RU · HY</b>spoken at the clinic</div>
+        </div>
+      </div>
+
+      <div class="voice" id="assistant" aria-live="polite">
+        <div class="voice-head">
+          <div>
+            <div class="who">Anna</div>
+            <div class="role">AI receptionist · Smile Dental</div>
+          </div>
+          <span class="status" id="status" data-state="idle">Ready</span>
+        </div>
+
+        <div class="stage">
+          <div class="orb" id="orb" data-mode="idle"></div>
+          <div class="stage-label" id="label">Press the button and say hello</div>
+        </div>
+
+        <div class="transcript" id="transcript" data-empty="Your conversation will appear here. Speak naturally — you can interrupt Anna at any time."></div>
+
+        <div class="voice-actions">
+          <button class="btn btn-primary" id="startBtn" data-start>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>
+            Talk to our assistant
+          </button>
+          <button class="btn btn-danger" id="endBtn" hidden>End call</button>
+        </div>
+        <div class="try" id="try">
+          <span>“How much is teeth whitening?”</span>
+          <span>“Book a cleaning tomorrow afternoon”</span>
+          <span>“Can I speak to a person?”</span>
+        </div>
+        <p class="voice-note">Uses your microphone · English · demo calls end after 3 minutes</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="services">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Services &amp; prices</h2>
+        <p>Prices in Armenian drams. Local anesthesia is included. Your dentist confirms the final price after the exam.</p>
+      </div>
+      <div class="services">
+        <article class="service"><h3>Consultation &amp; exam</h3><p>Full check-up and a written treatment plan. Free if treatment starts the same day.</p><div class="price"><span>30 min</span><b>5,000 ֏</b></div></article>
+        <article class="service"><h3>Professional cleaning</h3><p>Scaling, Air-Flow and polishing for a fresh, healthy smile.</p><div class="price"><span>60 min</span><b>25,000 ֏</b></div></article>
+        <article class="service"><h3>Composite filling</h3><p>Tooth-colored fillings that match your natural teeth.</p><div class="price"><span>60 min</span><b>20–35,000 ֏</b></div></article>
+        <article class="service"><h3>Root canal treatment</h3><p>Painless, microscope-assisted, priced by number of canals.</p><div class="price"><span>90 min</span><b>45–90,000 ֏</b></div></article>
+        <article class="service"><h3>Teeth whitening</h3><p>In-office whitening, results that last 1–3 years.</p><div class="price"><span>90 min</span><b>120,000 ֏</b></div></article>
+        <article class="service"><h3>Tooth extraction</h3><p>Simple extractions and wisdom teeth.</p><div class="price"><span>45 min</span><b>from 15,000 ֏</b></div></article>
+        <article class="service"><h3>Dental implants</h3><p>Starts with an implant consultation and 3D scan (15,000 ֏, deducted later).</p><div class="price"><span>after consult</span><b>280–450,000 ֏</b></div></article>
+        <article class="service"><h3>Braces &amp; aligners</h3><p>Metal, ceramic or clear aligners. Orthodontic consultation 10,000 ֏.</p><div class="price"><span>after consult</span><b>from 550,000 ֏</b></div></article>
+        <article class="service"><h3>Children’s dentistry</h3><p>Friendly check-ups for kids aged 3 to 14 with our children’s dentist.</p><div class="price"><span>30 min</span><b>8,000 ֏</b></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="visit">
+    <div class="wrap">
+      <div class="section-head"><h2>Visit us</h2></div>
+      <div class="visit">
+        <div class="card">
+          <h3>Opening hours</h3>
+          <table class="hours">
+            <tr><td>Monday – Friday</td><td>09:00 – 20:00</td></tr>
+            <tr><td>Saturday</td><td>10:00 – 16:00</td></tr>
+            <tr><td>Sunday</td><td>Closed</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Address</h3>
+          <p style="margin:0">15 Pushkin Street, Kentron<br>Yerevan, Armenia</p>
+          <p style="margin:10px 0 0;color:var(--muted);font-size:14px">7 minutes’ walk from Republic Square metro. Paid street parking.</p>
+        </div>
+        <div class="card">
+          <h3>Payment</h3>
+          <p style="margin:0">Cash, Visa, Mastercard, ArCa, Idram</p>
+          <p style="margin:10px 0 0;color:var(--muted);font-size:14px">0% installments up to 12 months on treatments over 200,000 ֏.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="section-head"><h2>Questions</h2><p>Or just ask Anna — she knows all of this too.</p></div>
+      <div class="faq">
+        <details><summary>Does treatment hurt?</summary><p>We use modern local anesthesia, so most procedures are painless. Anesthesia is included in the price.</p></details>
+        <details><summary>Do you treat children?</summary><p>Yes, from age 3, with a dedicated children’s dentist.</p></details>
+        <details><summary>Do you take insurance?</summary><p>We don’t bill insurers directly, but we give you all the documents you need to claim reimbursement.</p></details>
+        <details><summary>Can I cancel or reschedule?</summary><p>Yes — please let us know at least 24 hours in advance. Anna will pass your request to our administrator.</p></details>
+        <details><summary>What if I have a dental emergency?</summary><p>We keep same-day emergency slots on weekdays. For trouble breathing or heavy bleeding, call 911 immediately.</p></details>
+        <details><summary>Do you speak English or Russian?</summary><p>Yes, our team speaks Armenian, Russian and English.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="how">
+        <div class="section-head">
+          <h2>How this demo works</h2>
+          <p>Smile Dental is a fictional clinic. The AI receptionist, the booking system and the dashboard are real and running live.</p>
+        </div>
+        <div class="steps">
+          <div class="step"><span class="n">01 · Voice</span><h3>Real-time conversation</h3><p>ElevenLabs Agents handles speech recognition, the LLM, natural voice and interruptions.</p></div>
+          <div class="step"><span class="n">02 · Tools</span><h3>Real booking logic</h3><p>The agent calls a Cloudflare Worker to check free slots and create bookings. No made-up times.</p></div>
+          <div class="step"><span class="n">03 · Dashboard</span><h3>Every call is logged</h3><p>Bookings, call outcomes and callback requests appear on the front-desk dashboard instantly.</p></div>
+        </div>
+        <div class="how-links">
+          <a class="btn btn-primary" href="/dashboard/" target="_blank">Open the live dashboard</a>
+          <a class="btn btn-ghost" href="https://github.com/Rossenberg/voice-agent-demo" target="_blank" rel="noopener">Source code on GitHub</a>
+        </div>
+        <div class="stack"><span>ElevenLabs Agents</span><span>Claude Haiku</span><span>Cloudflare Workers</span><span>D1 (SQLite)</span><span>Webhooks · HMAC</span><span>Function calling</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Smile Dental Yerevan is a fictional clinic created for a portfolio demo. Names, prices and contacts are made up.</span>
+    <span><a href="/dashboard/">Dashboard</a> · <a href="https://github.com/Rossenberg/voice-agent-demo">GitHub</a></span>
+  </div>
+</footer>
+
+<a class="btn btn-primary fab" id="fab" href="#assistant" data-start>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>
+  Talk to Anna
+</a>
+
+<script src="/config.js"></script>
+<script type="module" src="/app.js"></script>
+</body>
+</html>

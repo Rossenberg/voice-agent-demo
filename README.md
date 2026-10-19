@@ -32,12 +32,28 @@ agent/dental/
   system-prompt.md     # role, tone, booking flow, escalation rules, guardrails
   knowledge-base.md    # services & prices (AMD), hours, policies, FAQ
   tools.json           # tool definitions (JSON Schema) shared by both platforms
+web/                   # clinic site (voice UI on @elevenlabs/client) + live dashboard
+scripts/
+  setup-elevenlabs.mjs # creates/updates the ElevenLabs agent via API
 backend/
   src/index.ts         # router: ElevenLabs tools, Vapi server URL, webhooks, dashboard API
   src/tools.ts         # check_availability · create_booking · transfer_to_human
   src/availability.ts  # opening hours, holidays, 2 parallel chairs, demo "busy" calendar
   src/calls.ts         # call log + outcome (booked / transferred / question / no_interaction)
   migrations/          # D1 schema
+```
+
+## Live demo
+
+- Clinic site with the voice assistant: https://voice-agent-demo.gasparyaninvest.workers.dev
+- Front-desk dashboard: https://voice-agent-demo.gasparyaninvest.workers.dev/dashboard/
+
+## Agent as code
+
+`scripts/setup-elevenlabs.mjs` builds the whole ElevenLabs agent from the files in `agent/dental/` through the API: tool auth secret, knowledge base, three webhook tools, signed post-call webhook, call limits (3-minute calls, daily cap), and the agent itself. Re-running it updates everything in place.
+
+```bash
+node scripts/setup-elevenlabs.mjs   # needs ELEVENLABS_API_KEY + TOOL_SECRET in backend/.env
 ```
 
 ## Endpoints

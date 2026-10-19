@@ -32,7 +32,7 @@ export default {
 
     try {
       if (request.method === "GET") {
-        if (pathname === "/") return json({ ok: true, service: "voice-agent-demo backend" });
+        if (pathname === "/health") return json({ ok: true, service: "voice-agent-demo backend" });
         if (pathname.startsWith("/api/")) return await handleDashboardApi(env, pathname, url.searchParams);
       }
 
@@ -178,9 +178,17 @@ async function verifyElevenLabsSignature(raw: string, header: string | null, sec
 // ---------------------------------------------------------------- Dashboard API (public, read-only, phones masked)
 
 async function handleDashboardApi(env: Env, pathname: string, params: URLSearchParams): Promise<Response> {
-  const business = params.get("business");
-  const where = business ? "WHERE business = ?" : "";
-  const bind = business ? [business] : [];
+  // Optional filters: ?business=dental&platform=elevenlabs
+  const filters: string[] = [];
+  const bind: string[] = [];
+  for (const key of ["business", "platform"]) {
+    const value = params.get(key);
+    if (value) {
+      filters.push(`${key} = ?`);
+      bind.push(value);
+    }
+  }
+  const where = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
   const serviceName = (biz: string, id: string) => BUSINESSES[biz]?.services[id]?.name ?? id;
 
   switch (pathname) {

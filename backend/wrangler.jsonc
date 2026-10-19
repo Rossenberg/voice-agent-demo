@@ -5,6 +5,11 @@
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
   "observability": { "enabled": true },
+  // Clinic site and dashboard are static files; the Worker only handles these paths.
+  "assets": {
+    "directory": "../web",
+    "run_worker_first": ["/api/*", "/tools/*", "/vapi", "/webhooks/*", "/health"]
+  },
   "d1_databases": [
     {
       "binding": "DB",
