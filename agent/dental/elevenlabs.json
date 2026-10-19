@@ -1,0 +1,14 @@
+{
+  "tool_secret_id": "IZpHW0dmZSrZ3bA27f7e",
+  "kb": {
+    "id": "7evSEYiVuDERG1SsyhAd",
+    "name": "Smile Dental Yerevan — knowledge base",
+    "hash": "e2d17d9cee217b61"
+  },
+  "tools": {
+    "check_availability": "tool_6201m5a74q4mfw2t2zfc8hyhzrk0",
+    "create_booking": "tool_8601m5a74qjjfjer06ddh6r1nk9b",
+    "transfer_to_human": "tool_5101m5a74rvkej1te3x05h05c53p"
+  },
+  "agent_id": "agent_1201m5a759vkf699j56nvr37s3gg"
+}

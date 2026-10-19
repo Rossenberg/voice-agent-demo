@@ -157,9 +157,16 @@ async function ensureTools() {
 
 async function ensureWebhook() {
   if (state.webhook_id) return;
-  const res = await api("POST", "/v1/workspace/webhooks", {
-    settings: { auth_type: "hmac", name: "voice-agent-demo post-call", webhook_url: `${BACKEND_URL}/webhooks/elevenlabs` },
-  });
+  let res;
+  try {
+    res = await api("POST", "/v1/workspace/webhooks", {
+      settings: { auth_type: "hmac", name: "voice-agent-demo post-call", webhook_url: `${BACKEND_URL}/webhooks/elevenlabs` },
+    });
+  } catch (err) {
+    if (err.status !== 401 && err.status !== 403) throw err;
+    console.log("! API key lacks the webhooks_write permission — skipping post-call webhook (call log will miss duration/summary)");
+    return;
+  }
   state.webhook_id = res.webhook_id;
   saveState();
   if (!res.webhook_secret) fail("ElevenLabs did not return a webhook secret");
@@ -211,7 +218,9 @@ async function ensureAgent() {
     platform_settings: {
       auth: { enable_auth: false, allowlist: SITE_HOSTS.map((hostname) => ({ hostname })) },
       call_limits: { agent_concurrency_limit: AGENT.concurrencyLimit, daily_limit: AGENT.dailyCallLimit },
-      workspace_overrides: { webhooks: { post_call_webhook_id: state.webhook_id, events: ["transcript"] } },
+      ...(state.webhook_id
+        ? { workspace_overrides: { webhooks: { post_call_webhook_id: state.webhook_id, events: ["transcript"] } } }
+        : {}),
     },
   };
 
