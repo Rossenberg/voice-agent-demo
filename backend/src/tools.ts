@@ -121,7 +121,7 @@ export async function createBooking(ctx: ToolContext, args: Args) {
   return {
     success: true,
     booking_id: bookingId,
-    booking_id_spoken: bookingId.split("").join(" "),
+    booking_id_spoken: bookingId.replace("-", "").split("").join(" "), // "S D 1 0 4 2"
     summary: `${service.name}, ${spokenDate(date)} at ${toHHMM(start)}`,
   };
 }

@@ -113,7 +113,9 @@ async function start() {
       },
       onMessage: ({ message, role, source }) => {
         const who = role ?? (source === "ai" ? "agent" : "user");
-        if (message?.trim()) addMessage(message, who === "user" ? "user" : "agent");
+        // Strip expressive voice tags like "[happy]" that the TTS model uses.
+        const text = message?.replace(/\[[a-z ]{2,20}\]\s*/gi, "").trim();
+        if (text) addMessage(text, who === "user" ? "user" : "agent");
       },
       onAgentToolRequest: (req) => {
         const name = req?.tool_name;

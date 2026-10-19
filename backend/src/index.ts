@@ -1,5 +1,6 @@
 import { BUSINESSES } from "./businesses";
 import { saveCallReport } from "./calls";
+import { reportFromElevenLabs, syncElevenLabsCalls } from "./elevenlabs";
 import { TOOLS, type ToolContext } from "./tools";
 import { json, maskName, maskPhone, safeEqual, spokenDate, toHHMM, ToolError } from "./util";
 
@@ -7,6 +8,8 @@ export interface Env {
   DB: D1Database;
   TOOL_SECRET: string;
   ELEVENLABS_WEBHOOK_SECRET?: string;
+  ELEVENLABS_API_KEY?: string;
+  ELEVENLABS_AGENT_ID?: string;
 }
 
 const TOOL_PATHS: Record<string, string> = {
@@ -60,6 +63,13 @@ export default {
     } catch (err) {
       console.error(err);
       return json({ error: "internal error" }, 500);
+    }
+  },
+
+  // Cron: backfill call reports in case the post-call webhook isn't configured or missed one.
+  async scheduled(_event, env, ctx) {
+    if (env.ELEVENLABS_API_KEY && env.ELEVENLABS_AGENT_ID) {
+      ctx.waitUntil(syncElevenLabsCalls(env.DB, env.ELEVENLABS_API_KEY, env.ELEVENLABS_AGENT_ID));
     }
   },
 } satisfies ExportedHandler<Env>;
@@ -139,20 +149,7 @@ async function handleElevenLabsWebhook(request: Request, env: Env): Promise<Resp
   }
 
   const event = JSON.parse(raw);
-  if (event.type === "post_call_transcription") {
-    const d = event.data ?? {};
-    const start = d.metadata?.start_time_unix_secs;
-    const transcript: any[] = d.transcript ?? [];
-    await saveCallReport(env.DB, {
-      id: d.conversation_id,
-      platform: "elevenlabs",
-      startedAt: start ? new Date(start * 1000).toISOString() : null,
-      durationSec: d.metadata?.call_duration_secs ?? null,
-      summary: d.analysis?.transcript_summary ?? null,
-      endedReason: d.metadata?.termination_reason ?? null,
-      userSpoke: transcript.some((t) => t.role === "user" && (t.message ?? "").trim()),
-    });
-  }
+  if (event.type === "post_call_transcription") await saveCallReport(env.DB, reportFromElevenLabs(event.data ?? {}));
   return json({ received: true });
 }
 

@@ -10,6 +10,8 @@
     "directory": "../web",
     "run_worker_first": ["/api/*", "/tools/*", "/vapi", "/webhooks/*", "/health"]
   },
+  "vars": { "ELEVENLABS_AGENT_ID": "agent_1201m5a759vkf699j56nvr37s3gg" },
+  "triggers": { "crons": ["*/2 * * * *"] },
   "d1_databases": [
     {
       "binding": "DB",
