@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "voice-agent-demo",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "voice-agent-demo",
+      "database_id": "7f1595f4-7c26-4495-bcf0-0ed8e78674a6"
+    }
+  ]
+}

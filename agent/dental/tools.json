@@ -1,0 +1,127 @@
+{
+  "_about": "Platform-agnostic tool definitions (JSON Schema, function-calling format). The same backend endpoints serve ElevenLabs and Vapi. BACKEND_URL and TOOL_SECRET are set up in step 3. Fields marked 'platform-injected' are filled by the platform (e.g. ElevenLabs dynamic variable {{system__conversation_id}}), not by the LLM.",
+  "auth": {
+    "header": "Authorization",
+    "value": "Bearer <TOOL_SECRET>"
+  },
+  "tools": [
+    {
+      "name": "check_availability",
+      "description": "Get free appointment times for a service on a given date at Smile Dental Yerevan. Always call this before offering any time to the patient. If the date is full or the clinic is closed, the result includes alternative dates.",
+      "endpoint": "POST {BACKEND_URL}/tools/check-availability",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "description": "Service code from the knowledge base.",
+            "enum": ["consultation", "cleaning", "filling", "root_canal", "extraction", "whitening", "implant_consult", "ortho_consult", "kids_visit"]
+          },
+          "date": {
+            "type": "string",
+            "description": "Requested date in YYYY-MM-DD format, Yerevan time (UTC+4)."
+          },
+          "time_preference": {
+            "type": "string",
+            "description": "Optional part of day the patient prefers.",
+            "enum": ["any", "morning", "afternoon", "evening"]
+          }
+        },
+        "required": ["service_id", "date"]
+      },
+      "example_response": {
+        "date": "2026-10-21",
+        "weekday": "Wednesday",
+        "open": true,
+        "service": { "id": "cleaning", "name": "Professional cleaning", "duration_min": 60 },
+        "available_times": ["10:00", "11:30", "15:00", "17:30"],
+        "alternatives": []
+      }
+    },
+    {
+      "name": "create_booking",
+      "description": "Create a confirmed appointment. Call ONLY after the patient has explicitly confirmed service, date, time, name and phone number. Returns a booking number, or an error if the slot was just taken.",
+      "endpoint": "POST {BACKEND_URL}/tools/create-booking",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "patient_name": {
+            "type": "string",
+            "description": "Patient's full name as confirmed."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Patient's phone number in international format, e.g. +37491234567."
+          },
+          "service_id": {
+            "type": "string",
+            "enum": ["consultation", "cleaning", "filling", "root_canal", "extraction", "whitening", "implant_consult", "ortho_consult", "kids_visit"]
+          },
+          "date": {
+            "type": "string",
+            "description": "YYYY-MM-DD, Yerevan time."
+          },
+          "time": {
+            "type": "string",
+            "description": "Start time HH:MM (24h), must be one of the times returned by check_availability."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional short note, e.g. 'new patient', 'tooth pain lower left', 'child age 7'."
+          },
+          "conversation_id": {
+            "type": "string",
+            "description": "platform-injected: {{system__conversation_id}} — links the booking to the call log."
+          }
+        },
+        "required": ["patient_name", "phone", "service_id", "date", "time"]
+      },
+      "example_response": {
+        "success": true,
+        "booking_id": "SD-1042",
+        "summary": "Professional cleaning, Wednesday 21 October 2026 at 11:30"
+      },
+      "example_error": {
+        "success": false,
+        "error": "slot_taken",
+        "message": "This time was just booked. Call check_availability again."
+      }
+    },
+    {
+      "name": "transfer_to_human",
+      "description": "Hand the conversation over to a human administrator. In the web demo this creates a callback request on the dashboard; on the phone (Vapi demo) it can also forward the live call. Use when the patient asks for a person, is angry, has a question outside the knowledge base, has an emergency, wants to cancel/reschedule, or a tool failed.",
+      "endpoint": "POST {BACKEND_URL}/tools/transfer-to-human",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": ["patient_request", "angry_patient", "complex_question", "emergency", "reschedule_or_cancel", "system_error", "other"]
+          },
+          "summary": {
+            "type": "string",
+            "description": "One or two sentences for the administrator: what the patient wants and any details collected."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Confirmed callback number in international format."
+          },
+          "patient_name": {
+            "type": "string",
+            "description": "Patient's name if known."
+          },
+          "conversation_id": {
+            "type": "string",
+            "description": "platform-injected: {{system__conversation_id}}"
+          }
+        },
+        "required": ["reason", "summary", "phone"]
+      },
+      "example_response": {
+        "success": true,
+        "ticket_id": "CB-217",
+        "message": "Administrator will call back within 15 minutes during opening hours."
+      }
+    }
+  ]
+}
