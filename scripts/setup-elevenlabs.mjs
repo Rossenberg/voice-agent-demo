@@ -34,6 +34,7 @@ const AGENT = {
       name: "Armenian",
       firstMessage: "Բարև Ձեզ, «Սմայլ Դենթալ Երևան» կլինիկա, ես Աննան եմ։ Ինչո՞վ կարող եմ օգնել։",
       voiceId: "O9ZoULGkPFs8mHdqJzyB", // "Nare" — warm, native Armenian (shared voice library)
+      llm: "gemini-3.8-flash", // more natural Armenian than Claude Haiku in our test
     },
   },
   concurrencyLimit: 2,
@@ -223,7 +224,7 @@ async function ensureAgent() {
       },
       ...(voiceId ? { tts: { voice_id: voiceId } } : {}),
       language_presets: Object.fromEntries(
-        Object.entries(AGENT.languages).map(([code, l]) => [code, { overrides: { agent: { first_message: l.firstMessage, language: code }, tts: { voice_id: l.voiceId } } }]),
+        Object.entries(AGENT.languages).map(([code, l]) => [code, { overrides: { agent: { first_message: l.firstMessage, language: code, ...(l.llm ? { prompt: { llm: l.llm } } : {}) }, tts: { voice_id: l.voiceId } } }]),
       ),
       conversation: { max_duration_seconds: AGENT.maxDurationSec },
     },
