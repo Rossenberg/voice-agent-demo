@@ -28,6 +28,14 @@ const AGENT = {
   voiceId: "EXAVITQu4vr4xnSDxMaL", // "Sarah" — calm, warm American English (premade voice)
   maxDurationSec: 180, // a public demo shouldn't burn minutes
   dailyCallLimit: 40,
+  // Extra languages: the caller picks one on the website; each gets its own greeting and native voice.
+  languages: {
+    hy: {
+      name: "Armenian",
+      firstMessage: "Բարև Ձեզ, «Սմայլ Դենթալ Երևան» կլինիկա, ես Աննան եմ։ Ինչո՞վ կարող եմ օգնել։",
+      voiceId: "O9ZoULGkPFs8mHdqJzyB", // "Nare" — warm, native Armenian (shared voice library)
+    },
+  },
   concurrencyLimit: 2,
 };
 
@@ -201,6 +209,7 @@ async function ensureAgent() {
       agent: {
         first_message: AGENT.firstMessage,
         language: "en",
+        dynamic_variables: { dynamic_variable_placeholders: { conversation_language: "English" } },
         prompt: {
           prompt,
           llm: AGENT.llm,
@@ -213,10 +222,15 @@ async function ensureAgent() {
         },
       },
       ...(voiceId ? { tts: { voice_id: voiceId } } : {}),
+      language_presets: Object.fromEntries(
+        Object.entries(AGENT.languages).map(([code, l]) => [code, { overrides: { agent: { first_message: l.firstMessage, language: code }, tts: { voice_id: l.voiceId } } }]),
+      ),
       conversation: { max_duration_seconds: AGENT.maxDurationSec },
     },
     platform_settings: {
       auth: { enable_auth: false, allowlist: SITE_HOSTS.map((hostname) => ({ hostname })) },
+      // the website may choose the conversation language (nothing else can be overridden)
+      overrides: { conversation_config_override: { agent: { language: true } } },
       call_limits: { agent_concurrency_limit: AGENT.concurrencyLimit, daily_limit: AGENT.dailyCallLimit },
       ...(state.webhook_id
         ? { workspace_overrides: { webhooks: { post_call_webhook_id: state.webhook_id, events: ["transcript"] } } }

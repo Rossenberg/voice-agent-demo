@@ -88,6 +88,9 @@ h1 em { font-style: italic; color: var(--brand); }
 
 .voice-actions { display: flex; gap: 10px; }
 .voice-actions .btn { flex: 1; }
+.lang { display: flex; justify-content: center; gap: 4px; margin-top: 12px; }
+.lang button { border: 1px solid var(--line); background: var(--surface); color: var(--muted); font: 600 13px/1 var(--sans); padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+.lang button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
 .voice-note { font-size: 12.5px; color: var(--muted); text-align: center; margin: 12px 0 0; }
 .try { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; }
 .try span { font-size: 12.5px; padding: 5px 10px; border-radius: 999px; background: #f4f2ed; color: var(--muted); }

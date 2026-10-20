@@ -12,6 +12,20 @@ const TOOL_LABELS = {
   transfer_to_human: ["Contacting the administrator…", "Callback request sent ✓"],
 };
 
+const LANGS = {
+  en: { name: "English", tries: ["“How much is teeth whitening?”", "“Book a cleaning tomorrow afternoon”", "“Can I speak to a person?”"] },
+  hy: { name: "Armenian", tries: ["«Ինչքա՞ն արժե ատամների սպիտակեցումը»", "«Ուզում եմ գրանցվել վաղը»", "«Կարո՞ղ եմ խոսել մենեջերի հետ»"] },
+};
+let lang = "en";
+try { if (localStorage.getItem("voiceDemoLang") in LANGS) lang = localStorage.getItem("voiceDemoLang"); } catch {}
+
+function setLang(code) {
+  lang = code;
+  try { localStorage.setItem("voiceDemoLang", code); } catch {}
+  document.querySelectorAll("#lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === code)));
+  tryEl.replaceChildren(...LANGS[code].tries.map((t) => Object.assign(document.createElement("span"), { textContent: t })));
+}
+
 let conversation = null;
 let connecting = false;
 let timerId = null;
@@ -35,6 +49,7 @@ function setInCall(inCall) {
   startBtn.hidden = inCall;
   endBtn.hidden = !inCall;
   tryEl.hidden = inCall;
+  $("lang").hidden = inCall;
 }
 
 function startTimer() {
@@ -94,6 +109,8 @@ async function start() {
     conversation = await Conversation.startSession({
       agentId,
       connectionType: "webrtc",
+      ...(lang !== "en" ? { overrides: { agent: { language: lang } } } : {}),
+      dynamicVariables: { conversation_language: LANGS[lang].name },
       onConnect: () => {
         startTimer();
         label.textContent = "Connected — say hello";
@@ -152,6 +169,8 @@ document.querySelectorAll("[data-start]").forEach((el) =>
   }),
 );
 endBtn.addEventListener("click", stop);
+document.querySelectorAll("#lang button").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.lang)));
+setLang(lang);
 
 // Floating button appears once the assistant card is off-screen.
 new IntersectionObserver(([entry]) => fab.classList.toggle("show", !entry.isIntersecting && !conversation), { threshold: 0.1 }).observe($("assistant"));
